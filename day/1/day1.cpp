@@ -13,10 +13,8 @@ struct state {
     if (rotation > 0) {
       click_zero_count += (dial + rotation) / dial_mod;
     } else {
-      int full_rotations = rotation / dial_mod;
-      click_zero_count += full_rotations;
-      int remainder = rotation - (full_rotations * dial_mod);
-      if (dial > 0 && dial + remainder <= 0)
+      click_zero_count -= rotation / dial_mod;
+      if (dial > 0 && dial + (rotation % dial_mod) < 0)
         click_zero_count++;
     }
 
@@ -26,8 +24,12 @@ struct state {
     if (dial < 0)
       dial += dial_mod;
 
-    if (dial == 0)
+    if (dial == 0) {
       dial_zero_count++;
+
+      if (rotation < 0)
+        click_zero_count++;
+    }
   }
 };
 

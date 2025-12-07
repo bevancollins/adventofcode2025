@@ -3,17 +3,43 @@
 #include <cassert>
 #include <string>
 #include <vector>
+#include <algorithm>
 
 struct IngredientRange {
   long long begin{};
   long long end{};
+
+  bool operator<(const IngredientRange& other) const {
+    return begin < other.begin || (begin == other.begin && end < other.end);
+  }
 };
 
-bool is_fresh(long long ingredient, const std::vector<IngredientRange>& fresh_ingrediant_ranges) {
-  for (const auto& range : fresh_ingrediant_ranges)
+bool is_fresh(long long ingredient, const std::vector<IngredientRange>& fresh_ingredient_ranges) {
+  for (const auto& range : fresh_ingredient_ranges)
     if (ingredient >= range.begin && ingredient <= range.end)
       return true;
   return false;
+}
+
+void remove_overlaps(std::vector<IngredientRange>& ranges) {
+  for (int i = 1; i < ranges.size(); ) {
+    if (ranges[i].begin <= ranges[i - 1].end) {
+      if (ranges[i].end > ranges[i - 1].end)
+        ranges[i - 1].end = ranges[i].end; // extend the previous range
+
+      ranges.erase(ranges.begin() + i);
+    } else {
+      i++;
+    }
+  }
+}
+
+long long total_fresh_ingredient_ids(const std::vector<IngredientRange>& fresh_ingredient_ranges) {
+  long long total_count{};
+  for (const auto& range : fresh_ingredient_ranges)
+    total_count += range.end - range.begin + 1;
+
+  return total_count;
 }
 
 int main(int argc, char** argv) {
@@ -62,7 +88,11 @@ int main(int argc, char** argv) {
       }
     }
 
-    *out << fresh_count << std::endl;
+    *out << "part 1: " << fresh_count << std::endl;
+
+    std::sort(fresh_ingredient_ranges.begin(), fresh_ingredient_ranges.end());
+    remove_overlaps(fresh_ingredient_ranges);
+    *out << "part 2: " << total_fresh_ingredient_ids(fresh_ingredient_ranges) << std::endl;
 
     return EXIT_SUCCESS;
  } catch (std::exception& e) {
